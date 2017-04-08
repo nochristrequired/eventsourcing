@@ -9,7 +9,7 @@ from eventsourcing.tests.sequenced_item_tests.test_sqlalchemy_active_record_stra
 
 # Todo: Support stopping and resuming when iterating over all events.
 
-class TestGetAllEventFromSQLAlchemy(WithSQLAlchemyActiveRecordStrategies, WithExampleApplication):
+class TestGetAllEventsFromSQLAlchemy(WithSQLAlchemyActiveRecordStrategies, WithExampleApplication):
 
     def test(self):
         with self.construct_application() as app:

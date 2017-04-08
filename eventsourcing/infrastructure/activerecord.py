@@ -7,6 +7,7 @@ from eventsourcing.infrastructure.sequenceditem import SequencedItemFieldNames
 
 
 class AbstractActiveRecordStrategy(six.with_metaclass(ABCMeta)):
+    implements_all_items_with_token = False
 
     def __init__(self, active_record_class, sequenced_item_class):
         self.active_record_class = active_record_class

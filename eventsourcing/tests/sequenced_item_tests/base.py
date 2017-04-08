@@ -62,7 +62,7 @@ class ActiveRecordStrategyTestCase(AbstractDatastoreTestCase):
         # Check repo returns None when there aren't any items.
         self.assertEqual(self.active_record_strategy.get_items(sequence_id1), [])
 
-        position1, position2, position3 = self.construct_positions()
+        position1, position2, position3, position4 = self.construct_positions()
 
         self.assertLess(position1, position2)
         self.assertLess(position2, position3)
@@ -249,6 +249,10 @@ class ActiveRecordStrategyTestCase(AbstractDatastoreTestCase):
         self.assertEqual(retrieved_items[0].position, position3)
         self.assertEqual(retrieved_items[2].position, position1)
 
+        # Check we can get all the events of the application.
+        if not self.active_record_strategy.implements_all_items_with_token:
+            return
+
         # Iterate over all items in all sequences.
         items_with_token = self.active_record_strategy.all_items_with_token()
         items_with_token = list(items_with_token)
@@ -257,17 +261,37 @@ class ActiveRecordStrategyTestCase(AbstractDatastoreTestCase):
         # Not always in order, but check the number of events.
         self.assertEqual(len(retrieved_items), 4)
 
-        # Check we can get all the sequence IDs.
+        # Check all the sequence IDs are there.
         entity_ids = set([i.sequence_id for i in retrieved_items])
         self.assertEqual(entity_ids, {sequence_id1, sequence_id2})
 
         # Check we can resume from part-way through.
-        _, token = items_with_token[-3]
+        _, token = items_with_token[1]
         last_two_items_with_token = self.active_record_strategy.all_items_with_token(token=token)
         last_two_items_with_token = list(last_two_items_with_token)
         last_two_items = [item for item, token in last_two_items_with_token]
-
         self.assertEqual(len(last_two_items), 2)
+
+        # Check resuming from the end yields no further items.
+        _, token = items_with_token[-1]
+        nothing_further = self.active_record_strategy.all_items_with_token(token=token)
+        nothing_further = list(nothing_further)
+        self.assertEqual(len(nothing_further), 0)
+
+        # Append a fourth item to the sequence at the next position.
+        item5 = SequencedItem(
+            sequence_id=item1.sequence_id,
+            position=position4,
+            topic=self.EXAMPLE_EVENT_TOPIC2,
+            data=data3,
+        )
+        self.active_record_strategy.append_item(item5)
+
+        # Check resuming from the end now yields one more item.
+        _, token = items_with_token[-1]
+        one_more = self.active_record_strategy.all_items_with_token(token=token)
+        one_more = list(one_more)
+        self.assertEqual(len(one_more), 1)
 
 
 class WithActiveRecordStrategies(AbstractDatastoreTestCase):
@@ -336,7 +360,7 @@ class IntegerSequencedItemTestCase(ActiveRecordStrategyTestCase):
     EXAMPLE_EVENT_TOPIC2 = topic_from_domain_class(ExampleVersionEntityEvent2)
 
     def construct_positions(self):
-        return 0, 1, 2
+        return 0, 1, 2, 3
 
 
 class TimestampSequencedItemTestCase(ActiveRecordStrategyTestCase):
@@ -345,7 +369,7 @@ class TimestampSequencedItemTestCase(ActiveRecordStrategyTestCase):
 
     def construct_positions(self):
         t1 = time()
-        return t1, t1 + 0.00001, t1 + 0.00002
+        return t1, t1 + 0.00001, t1 + 0.00002, t1 + 0.00003
 
 
 class SequencedItemIteratorTestCase(WithActiveRecordStrategies):

@@ -95,7 +95,12 @@ class TestEventStore(SQLAlchemyDatastoreTestCase):
         self.assertEqual(entity_event, event1)
 
     def test_all_domain_events(self):
+
         event_store = self.construct_event_store()
+
+        if event_store.active_record_strategy.implements_all_items_with_token:
+            self.skipTest('{} does not implement all_items_with_token()'
+                          ''.format(type(event_store.active_record_strategy)))
 
         # Check there are zero domain events in total.
         domain_events = event_store.all_domain_events()

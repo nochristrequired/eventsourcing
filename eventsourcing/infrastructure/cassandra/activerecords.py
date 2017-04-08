@@ -69,6 +69,7 @@ class CassandraActiveRecordStrategy(AbstractActiveRecordStrategy):
         return items
 
     def all_items_with_token(self, token=None, page_limit=1):
+        raise NotImplementedError("This isn't working, really.")
         query = self.active_record_class.objects.all().limit(page_limit)
         if token is not None:
             page_query = query.filter(pk__token__gt=Token(token))

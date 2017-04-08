@@ -10,6 +10,7 @@ from eventsourcing.infrastructure.sqlalchemy.datastore import Base, SQLAlchemyDa
 
 
 class SQLAlchemyActiveRecordStrategy(AbstractActiveRecordStrategy):
+    implements_all_items_with_token = True
 
     def __init__(self, datastore, *args, **kwargs):
         assert isinstance(datastore, SQLAlchemyDatastore)
