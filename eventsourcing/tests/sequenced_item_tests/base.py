@@ -250,8 +250,9 @@ class ActiveRecordStrategyTestCase(AbstractDatastoreTestCase):
         self.assertEqual(retrieved_items[2].position, position1)
 
         # Iterate over all items in all sequences.
-        retrieved_items = self.active_record_strategy.all_items()
-        retrieved_items = list(retrieved_items)
+        items_with_token = self.active_record_strategy.all_items_with_token()
+        items_with_token = list(items_with_token)
+        retrieved_items = [item for item, token in items_with_token]
 
         # Not always in order, but check the number of events.
         self.assertEqual(len(retrieved_items), 4)
@@ -259,6 +260,14 @@ class ActiveRecordStrategyTestCase(AbstractDatastoreTestCase):
         # Check we can get all the sequence IDs.
         entity_ids = set([i.sequence_id for i in retrieved_items])
         self.assertEqual(entity_ids, {sequence_id1, sequence_id2})
+
+        # Check we can resume from part-way through.
+        _, token = items_with_token[-3]
+        last_two_items_with_token = self.active_record_strategy.all_items_with_token(token=token)
+        last_two_items_with_token = list(last_two_items_with_token)
+        last_two_items = [item for item, token in last_two_items_with_token]
+
+        self.assertEqual(len(last_two_items), 2)
 
 
 class WithActiveRecordStrategies(AbstractDatastoreTestCase):

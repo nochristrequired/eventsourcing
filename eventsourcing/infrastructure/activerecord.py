@@ -33,9 +33,13 @@ class AbstractActiveRecordStrategy(six.with_metaclass(ABCMeta)):
         """
 
     @abstractmethod
-    def all_items(self):
+    def all_items_with_token(self, token=None):
         """
         Returns all items from all sequences (possibly in chronological order, depending on database).
+        
+        The items are returned as a sequence of tuples, with the item and a token that can be used
+        to suspend and resume progressing through all the items.
+        :param token: 
         """
 
     def raise_sequenced_item_error(self, sequenced_item, e):

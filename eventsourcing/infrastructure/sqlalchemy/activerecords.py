@@ -88,8 +88,11 @@ class SQLAlchemyActiveRecordStrategy(AbstractActiveRecordStrategy):
 
         return events
 
-    def all_items(self):
-        return map(self.from_active_record, self.filter())
+    def all_items_with_token(self, token=None):
+        query = self.filter()
+        if token is not None:
+            query = query.filter(self.active_record_class.id > token)
+        return map(lambda x: (self.from_active_record(x), x.id), query)
 
     def add_record_to_session(self, active_record):
         if isinstance(active_record, list):

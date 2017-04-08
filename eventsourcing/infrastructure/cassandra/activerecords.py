@@ -68,14 +68,22 @@ class CassandraActiveRecordStrategy(AbstractActiveRecordStrategy):
 
         return items
 
-    def all_items(self):
-        query = self.active_record_class.objects.all().limit(10)
-        page = list(query)
-        while page:
-            for record in page:
-                yield self.from_active_record(record)
-            last = page[-1]
-            page = list(query.filter(pk__token__gt=Token(last.pk)))
+    def all_items_with_token(self, token=None, page_limit=1):
+        query = self.active_record_class.objects.all().limit(page_limit)
+        if token is not None:
+            page_query = query.filter(pk__token__gt=Token(token))
+        else:
+            page_query = query
+        records = list(page_query)
+        while records:
+            last_token = None
+            for record in records:
+                sequenced_item = self.from_active_record(record)
+                yield (sequenced_item, token)
+                token = record.pk
+                last_token = token
+            page_query = query.filter(pk__token__gt=Token(last_token))
+            records = list(page_query)
 
     def to_active_record(self, sequenced_item):
         """
